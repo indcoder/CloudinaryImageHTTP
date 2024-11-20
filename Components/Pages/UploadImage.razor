@@ -1,0 +1,36 @@
+﻿@page "/upload-image"
+@inject IImageUploadService ImageUploadService
+@rendermode InteractiveServer
+
+<h3>Upload Image</h3>
+
+<input type="text" @bind="CloudName" placeholder="Cloud Name" />
+<input type="text" @bind="ApiKey" placeholder="API Key" />
+<input type="text" @bind="Signature" placeholder="Signature" />
+<input type="text" @bind="Timestamp" placeholder="Timestamp" />
+<InputFile OnChange="UploadSelectedImage" />
+
+@if (!string.IsNullOrEmpty(UploadedImageUrl))
+{
+    <img src="@UploadedImageUrl" alt="Uploaded Image" />
+}
+
+@code {
+    private string UploadedImageUrl;
+    private string CloudName;
+    private string ApiKey;
+    private string Signature;
+    private string Timestamp;
+    private IBrowserFile SelectedFile;
+
+    private async Task UploadSelectedImage(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles();
+        if (files != null && files.Count > 0)
+        {
+            SelectedFile = files[0];
+            using var stream = SelectedFile.OpenReadStream();
+            UploadedImageUrl = await ImageUploadService.UploadImageAsync(stream, SelectedFile.Name, CloudName, ApiKey, Signature, Timestamp);
+        }
+    }
+}
